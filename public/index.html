@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Win69</title>
+<style>
+body{background:#020617;color:white;text-align:center}
+button{margin:5px;padding:10px}
+.game{display:none;margin-top:20px}
+</style>
+</head>
+<body>
+
+<h1>🎰 Win69</h1>
+
+<button onclick="show('tx')">Tài Xỉu</button>
+<button onclick="show('slot')">Slot</button>
+<button onclick="show('guess')">Đoán</button>
+<button onclick="show('evenodd')">Lẻ/Chẵn</button>
+<button onclick="show('hl')">High/Low</button>
+<button onclick="show('box')">Hộp</button>
+<button onclick="show('spin')">Spin</button>
+<button onclick="show('aviator')">Aviator</button>
+
+<p id="money">💰 100000</p>
+<p id="jackpot">💥 1000000</p>
+
+<div id="tx" class="game">
+<input id="amount">
+<button onclick="bet('tai')">Tài</button>
+<button onclick="bet('xiu')">Xỉu</button>
+<p id="tx_res"></p>
+</div>
+
+<div id="slot" class="game">
+<input id="slot_money">
+<button onclick="playSlot()">Quay</button>
+<p id="slot_res"></p>
+</div>
+
+<div id="guess" class="game">
+<input id="g_num"><input id="g_money">
+<button onclick="playGuess()">Chơi</button>
+<p id="g_res"></p>
+</div>
+
+<div id="evenodd" class="game">
+<input id="eo_money">
+<button onclick="eo('even')">Chẵn</button>
+<button onclick="eo('odd')">Lẻ</button>
+<p id="eo_res"></p>
+</div>
+
+<div id="hl" class="game">
+<input id="hl_money">
+<button onclick="hl('high')">High</button>
+<button onclick="hl('low')">Low</button>
+<p id="hl_res"></p>
+</div>
+
+<div id="box" class="game">
+<input id="box_money">
+<button onclick="box()">Mở</button>
+<p id="box_res"></p>
+</div>
+
+<div id="spin" class="game">
+<button onclick="spin()">Quay</button>
+<p id="spin_res"></p>
+</div>
+
+<div id="aviator" class="game">
+<p id="aviator_text"></p>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket=io();
+let money=100000;
+
+function show(g){
+document.querySelectorAll('.game').forEach(x=>x.style.display='none');
+document.getElementById(g).style.display='block';
+}
+
+function bet(c){
+let a=parseInt(document.getElementById('amount').value);
+socket.emit("bet_taixiu",{choice:c,amount:a});
+}
+
+function playSlot(){
+let a=parseInt(document.getElementById('slot_money').value);
+socket.emit("slot",a);
+}
+
+function playGuess(){
+socket.emit("guess_number",{
+number:parseInt(g_num.value),
+amount:parseInt(g_money.value)
+});
+}
+
+function eo(c){
+socket.emit("even_odd",{choice:c,amount:parseInt(eo_money.value)});
+}
+
+function hl(c){
+socket.emit("high_low",{choice:c,amount:parseInt(hl_money.value)});
+}
+
+function box(){
+socket.emit("box",parseInt(box_money.value));
+}
+
+function spin(){socket.emit("spin");}
+
+socket.on("taixiu_result",d=>{
+tx_res.innerText=d.dice.join("-")+"="+d.result;
+jackpot.innerText=d.jackpot;
+if(d.players[socket.id]) money=d.players[socket.id].money;
+update();
+});
+
+socket.on("slot_result",r=>{
+slot_res.innerText=r.result.join(" ");
+});
+
+socket.on("guess_result",r=>{
+g_res.innerText="Số "+r.lucky;
+});
+
+socket.on("even_odd_result",r=>{
+eo_res.innerText=r.num+"="+r.result;
+});
+
+socket.on("hl_result",r=>{
+hl_res.innerText=r.num+"="+r.result;
+});
+
+socket.on("box_result",r=>{
+box_res.innerText=r;
+});
+
+socket.on("spin_result",r=>{
+spin_res.innerText=r;
+});
+
+socket.on("aviator_update",m=>{
+aviator_text.innerText="✈️ x"+m;
+});
+
+socket.on("aviator_crash",m=>{
+aviator_text.innerText="💥 x"+m;
+});
+
+function update(){
+moneyEl=document.getElementById("money");
+moneyEl.innerText="💰 "+money;
+}
+</script>
+
+</body>
+  </html>
